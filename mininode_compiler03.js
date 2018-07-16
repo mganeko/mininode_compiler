@@ -1,8 +1,8 @@
 // -------------------------
 // mininode_compiler.js - Mini Node.js Compiler by Node.js
-// - 01: i32 literal
-// - 01: binary operator
-//   - 01: +
+// - 03: i32 literal
+// - binary operator
+//   - 03: +
 //   - -, *, /, % 
 // -------------------------
 
