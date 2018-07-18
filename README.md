@@ -5,6 +5,8 @@
 * [01 : 仕様の検討と、LLVMの準備](https://qiita.com/massie_g/items/1bdede3016a53f366fec) ... コンパイラの仕様検討と、LLVMの導入
 * [02 : LLVM IRの下調べ](https://qiita.com/massie_g/items/7e2d2d742f1da49b8daf) ... LLVM IRについて調べて見ました
 * [03 : 足し算(+演算子)を実現する](https://qiita.com/massie_g/items/8d5f7afa012b7ae76ab8) ... 整数リテラルと足し算
+* [04 : 四則演算と余りをサポートする](https://qiita.com/massie_g/items/07b2bec3d7266faf9785) ... 四則演算と余り(-, *, /, %)
+* [05 : ローカル変数を使う](https://qiita.com/massie_g/items/ef10b1a3b214516d6663) ... ローカル変数、複数行、デバッグ用簡易出力
 
 ## License / ライセンス
 
