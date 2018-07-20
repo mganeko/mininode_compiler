@@ -74,6 +74,10 @@ function compile(tree, lctx) {
 
 // ---- genereate LLVM IR block ---
 function generate(tree, lctx) {
+  if (tree === null) {
+    return '';
+  }
+  
   // --- multi lines ---
   if (tree[0] === 'stmts') {
     let i = 1;
