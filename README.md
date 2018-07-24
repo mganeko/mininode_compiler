@@ -7,6 +7,8 @@
 * [03 : 足し算(+演算子)を実現する](https://qiita.com/massie_g/items/8d5f7afa012b7ae76ab8) ... 整数リテラルと足し算
 * [04 : 四則演算と余りをサポートする](https://qiita.com/massie_g/items/07b2bec3d7266faf9785) ... 四則演算と余り(-, *, /, %)
 * [05 : ローカル変数を使う](https://qiita.com/massie_g/items/ef10b1a3b214516d6663) ... ローカル変数、複数行、デバッグ用簡易出力
+* [06 : 比較を行う](https://qiita.com/massie_g/items/fd309c8cada1b0d5a416) ... 比較演算子をサポート
+* [07 : 条件分岐を行う](https://qiita.com/massie_g/items/3f175c205470993eb548) ... if 〜 else への対応
 
 ## License / ライセンス
 
