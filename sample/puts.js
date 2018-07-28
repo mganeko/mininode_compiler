@@ -1,0 +1,1 @@
+puts('hello mininode compiler!');
