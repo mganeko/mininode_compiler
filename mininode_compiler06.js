@@ -295,12 +295,12 @@ function generateBuiltin() {
   let block = LF();
   block = block + '; --- builtin functions ---' + LF();
   block = block + '@.sputn = private unnamed_addr constant [5 x i8] c"%d\\0D\\0A\\00", align 1' + LF();
-  block = block + 'declare i32 @printf(i8*, ...)' +　LF();
+  block = block + 'declare i32 @printf(i8*, ...)' + LF();
   block = block + LF();
-  block = block + 'define void @putn(i32) {' +　LF();
-  block = block + '  %r1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.sputn, i32 0, i32 0), i32 %0)' +　LF();
-  block = block + '  ret void' +　LF();
-  block = block + '}' +　LF();
+  block = block + 'define void @putn(i32) {' + LF();
+  block = block + '  %r1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.sputn, i32 0, i32 0), i32 %0)' + LF();
+  block = block + '  ret void' + LF();
+  block = block + '}' + LF();
   return block;
 }
 
