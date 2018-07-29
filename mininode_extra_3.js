@@ -291,6 +291,8 @@ let genv = {
 
   // --- for compiler ---
   'writeFile' : ['builtin', 'writeFile'],
+  'putn' : ['builtin', 'println'],
+  'puts' : ['builtin', 'println'],
 };
 let lenv = {};
 
