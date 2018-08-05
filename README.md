@@ -9,6 +9,10 @@
 * [05 : ローカル変数を使う](https://qiita.com/massie_g/items/ef10b1a3b214516d6663) ... ローカル変数、複数行、デバッグ用簡易出力
 * [06 : 比較を行う](https://qiita.com/massie_g/items/fd309c8cada1b0d5a416) ... 比較演算子をサポート
 * [07 : 条件分岐を行う](https://qiita.com/massie_g/items/3f175c205470993eb548) ... if 〜 else への対応
+* [08 : Whileループを実装する ](https://qiita.com/massie_g/items/80e9aedc613900c2de7d) ... while ループをサポートする
+* [09 : 文字列出力とFizzBuzz](https://qiita.com/massie_g/items/b84c7ede1a2b91f33bdd) ... ループを使ってFizzBuzzを実現
+* [10 : ユーザー定義関数](https://qiita.com/massie_g/items/7791d946de380b8b7f1e) ... ユーザー定義関数をサポートする
+* [11 : FizzBuzzとフィボナッチ数列](https://qiita.com/massie_g/items/3b73a8d7ab3324aba36e) ... ユーザー定義関数を使ってFizzBuzzとフィボナッチ数列を実現（再帰呼び出し）
 
 ## License / ライセンス
 
