@@ -52,7 +52,7 @@ function generate(tree, lctx) {
     const rightBlock = generate(tree[2], lctx);
     const rightTempName = '%t' + lctx['tempIdx']
 
-    //　prepare temp register
+    // prepare temp register
     let idx = lctx['tempIdx'];
     idx = idx + 1;
     lctx['tempIdx'] = idx;
