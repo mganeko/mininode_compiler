@@ -86,17 +86,17 @@ TestDirectWithHelper() {
 PreprocessForDirect() {
   if [ "$preprocess" = "exitcode" ]
   then
-    echo "--prepare for exit code:  src=$jsfile tmp=$direct_file --"
+    echo "-- preprocess for exit code:  src=$jsfile tmp=$direct_file --"
     echo "process.exit(" > $direct_file
-    cat $jsfile | sed -e "s/;\$//" >>  $direct_file  #  remove ';'' at line end
+    cat $jsfile | sed -e "s/;\$//" >>  $direct_file  #  remove ';' at line end
     echo ");" >> $direct_file
   elif [ "$preprocess" = "builtin" ]
   then
-    echo "--prepare for builtin func:  src=$jsfile tmp=$direct_file --"
+    echo "-- preprocess for builtin func:  src=$jsfile tmp=$direct_file --"
     cat $helper_file > $direct_file # putn(), puts()
     cat $jsfile >>  $direct_file
   else
-    echo "--no preproces: copy src=$jsfile tmp=$direct_file --"
+    echo "-- no preprocess: copy src=$jsfile tmp=$direct_file --"
     cat $jsfile >  $direct_file
   fi
 }
