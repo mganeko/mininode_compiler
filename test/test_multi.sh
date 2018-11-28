@@ -6,8 +6,8 @@
 
 
 # ----- test target ----
-compiler=mininode_compiler12.js
-#interpreter=mininode_extra_5.js
+#compiler=mininode_compiler12.js
+compiler=mininode_compiler_13.js
 
 
 # --- summary ---
@@ -79,6 +79,9 @@ TestSingleWithPreprocess $compiler fizzbuzz_loop.js builtin ignoreexit remove
 TestSingleWithPreprocess $compiler func_add.js builtin ignoreexit remove
 TestSingleWithPreprocess $compiler fizzbuzz_func.js builtin ignoreexit remove
 TestSingleWithPreprocess $compiler fib_func.js builtin ignoreexit remove
+
+TestSingleWithPreprocess $compiler consolelog.js none ignoreexit remove
+TestSingleWithPreprocess $compiler fizzbuzz_func_consolelog.js none ignoreexit remove
 
 # --- report --
 Report

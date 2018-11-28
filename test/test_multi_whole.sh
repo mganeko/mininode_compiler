@@ -6,9 +6,10 @@
 
 
 # ----- test target ----
-compiler=mininode_compiler12.js
-interpreter=mininode_extra_5.js
-
+#compiler=mininode_compiler12.js
+#interpreter=mininode_extra_5.js
+compiler=mininode_compiler_13.js
+interpreter=mininode_13.js
 
 # --- summary ---
 case_count=0
@@ -55,6 +56,10 @@ Report() {
 }
 
 # --- force quit  --
+
+#TestSingleWithPreprocess $compiler $interpreter consolelog.js none ignoreexit save
+#TestSingleWithPreprocess $compiler $interpreter fizzbuzz_func_consolelog.js none ignoreexit save
+#--
 #Report
 #exit $err_count
 
@@ -80,6 +85,10 @@ TestSingleWithPreprocess $compiler $interpreter fizzbuzz_loop.js builtin ignoree
 TestSingleWithPreprocess $compiler $interpreter func_add.js builtin ignoreexit remove
 TestSingleWithPreprocess $compiler $interpreter fizzbuzz_func.js builtin ignoreexit remove
 TestSingleWithPreprocess $compiler $interpreter fib_func.js builtin ignoreexit remove
+
+TestSingleWithPreprocess $compiler $interpreter consolelog.js none ignoreexit remove
+TestSingleWithPreprocess $compiler $interpreter fizzbuzz_func_consolelog.js none ignoreexit remove
+
 
 # --- report --
 Report
