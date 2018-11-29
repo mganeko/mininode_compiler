@@ -203,7 +203,7 @@ function simplify(exp) {
 
       // --- STEP 13 -- for console.log ---
       if ( (name === 'console') && (prop === 'log') ) {
-        printWarn('--console.log()---');
+        //printWarn('--console.log()---');
         const tree = ['func_call', 'console.log'].concat(treeArgs);
         return tree;
       }

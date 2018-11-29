@@ -455,12 +455,12 @@ function generateFuncMacro(func, tree, gctx, lctx) {
     let funcByMacro = null;
     if (isStringLiteral(arg)) {
       // -- puts ---
-      printWarn('--string for console.log ---');
+      //printWarn('--string for console.log ---');
       funcByMacro = getGlobalFunc(gctx, 'puts');
     }
     else {
       // -- putn --
-      printWarn('--num for console.log ---');
+      //printWarn('--num for console.log ---');
       funcByMacro = getGlobalFunc(gctx, 'putn');
     }
 
