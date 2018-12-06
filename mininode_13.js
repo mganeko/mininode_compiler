@@ -97,6 +97,11 @@ function evaluate(tree, genv, lenv) {
   if (tree[0] === 'func_call') {
     //println('func_call: ' + tree[1]);
     const mhd = genv[tree[1]];
+    if (! mhd) {
+      println('--- ERROR, unknown builtin function ---');
+      println(tree[1]);
+      abort();     
+    }
 
     let args = [];
     let i = 0;
