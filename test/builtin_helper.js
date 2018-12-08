@@ -15,5 +15,11 @@ function puts(s) {
   console.log(s);
   return 0;
 }
+
+// --- for double --
+function putf(d) {
+  console.log(d);
+  return 0;
+}
 // --------------
 

@@ -21,11 +21,15 @@
 // - 12: for test 
 // - 13: console.log
 // - 14: double
-//    - putf(double)
-//    - ret
-//    - (args type)
-//    - literal, expression
+//    - 14: putf(double)
+//    - 14: ret
+//    - 14: cast to i32
+//    - 14: cast to i1
+//    - cast to double
+//    - 14: literal
+//    - expression
 //    - variable
+//    - (args type)
 // -------------------------
 
 "use strict"
@@ -717,20 +721,37 @@ function castToI32(lctx) {
   }
 
   println('-- ERROR: unknown type in castToI32() ---');
-  printObj(currentType);
+  println(currentType);
   abort();
 }
 
 // cast i32 to i1, if necessary
 function castToI1(lctx) {
-  if (currentTempType(lctx) === 'i1') {
+  const currentType = currentTempType(lctx);
+  if (currentType === 'i1') {
     return '';
   }
 
-  const currentName = currentTempName(lctx);
-  const castedName = nextTempName(lctx);
-  const castBlock = TAB() + castedName + ' = icmp ne i32 ' + currentName + ', 0' + LF();
-  return castBlock;
+  if (currentType === 'i32') {
+    const currentName = currentTempName(lctx);
+    const castedName = nextTempName(lctx);
+    const castBlock = TAB() + castedName + ' = icmp ne i32 ' + currentName + ', 0' + LF();
+    setCurrentTempType(lctx, 'i32');
+    return castBlock;
+  }
+
+  // --- support double ---
+  if (currentType === 'double') {
+    const currentName = currentTempName(lctx);
+    const castedName = nextTempName(lctx); //fcmp oeq float 4.0, 5.0
+    const castBlock = TAB() + castedName + ' = fcmp one double ' + currentName + ', 0.0 ;cast doublet to i1' + LF();
+    setCurrentTempType(lctx, 'i32');
+    return castBlock;
+  }
+
+  println('-- ERROR: unknown type in castToI1() ---');
+  println(currentType);
+  abort();
 }
 
 
@@ -841,7 +862,7 @@ function generateGlobalFunctions(gctx) {
 // ======== start compiler =======
 
 // --- load and parse source ---
-printWarn('--compiler13--');
+printWarn('--compiler14--');
 const tree = loadAndParseSrc();
 printWarn('--- source parsed ---');
 printObj(tree);

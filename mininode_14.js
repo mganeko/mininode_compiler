@@ -1,7 +1,7 @@
 // -------------------------
 // mininode.js - Node.js by Node.js
-// compiler step 13:
-// - console.log
+// compiler step 14:
+// - double
 // -------------------------
 
 //const esprima = require("esprima");
@@ -12,8 +12,9 @@ const loadAndParseSrc = require('./module_parser_13.js');
 const println = require('./module_println.js');
 const printObj = require('./module_printobj.js');
 const abort = require('./module_abort.js');
-const callBuiltinByName = require('./module_builtin_13.js');
+const callBuiltinByName = require('./module_builtin_14.js');
 const printWarn = require('./module_printwarn.js');
+//const isDouble = require('./module_isdouble.js');
 
 // --- for console.log ---
 //const consoleLog = console.log;
@@ -312,12 +313,16 @@ let genv = {
 
   // --- for console.log ---
   'console.log' :  ['builtin', 'consoleLog'],
+
+  // --- for double ---
+  'isDouble' : ['builtin', 'isDouble'],
+  'putf' : ['builtin', 'println'],
 };
 let lenv = {};
 
 
 
-printWarn('-- mininode 13 --')
+printWarn('-- mininode extra 5--')
 const tree = loadAndParseSrc();
 printWarn('--- tree ---');
 //printObj(tree);
