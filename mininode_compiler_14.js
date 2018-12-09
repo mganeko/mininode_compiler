@@ -22,7 +22,7 @@
 // - 13: console.log
 // - 14: double
 //    - 14: putf(double)
-//    - 14: ret
+//    - 14: ret i32
 //    - 14: cast to i32
 //    - 14: cast to i1
 //    - cast to double
@@ -30,6 +30,7 @@
 //    - expression
 //    - variable
 //    - (args type)
+//    - (ret double)
 // -------------------------
 
 "use strict"
@@ -354,44 +355,56 @@ function generate(tree, gctx, lctx) {
 
   // --- binary operator ---
   if (tree[0] === '+') {
-    return generateBinaryOperator(tree, 'add', gctx, lctx);
+    // -- try double --
+    //return generateBinaryOperator(tree, 'add', gctx, lctx);
+    return generateBinaryOperatorWithDouble(tree, 'add', 'fadd',  gctx, lctx);
   }
   if (tree[0] === '-') {
-    return generateBinaryOperator(tree, 'sub', gctx, lctx);
+    //return generateBinaryOperator(tree, 'sub', gctx, lctx);
+    return generateBinaryOperatorWithDouble(tree, 'sub', 'fsub', gctx, lctx);
   }
   if (tree[0] === '*') {
-    return generateBinaryOperator(tree, 'mul', gctx, lctx);
+    //return generateBinaryOperator(tree, 'mul', gctx, lctx);
+    return generateBinaryOperatorWithDouble(tree, 'mul', 'fmul', gctx, lctx);
   }
   if (tree[0] === '/') {
-    return generateBinaryOperator(tree, 'sdiv', gctx, lctx);
+    //return generateBinaryOperator(tree, 'sdiv', gctx, lctx);
+    return generateBinaryOperatorWithDouble(tree, 'sdiv', 'fdiv', gctx, lctx);
   }
   if (tree[0] === '%') {
-    return generateBinaryOperator(tree, 'srem', gctx, lctx);
+    //return generateBinaryOperator(tree, 'srem', gctx, lctx);
+    return generateBinaryOperatorWithDouble(tree, 'srem', 'frem', gctx, lctx);
   }
 
   // --- compare operator ---
   if (tree[0] === '===') {
-    const block = generateCompareOperator(tree, 'icmp eq', gctx, lctx);
+    //const block = generateCompareOperator(tree, 'icmp eq', gctx, lctx);
+    const block = generateCompareOperatorWithDouble(tree, 'icmp eq', 'fcmp oeq', gctx, lctx);
     return block;
   }
   if (tree[0] === '!==') {
-    const block = generateCompareOperator(tree, 'icmp ne', gctx, lctx);
+    //const block = generateCompareOperator(tree, 'icmp ne', gctx, lctx);
+    const block = generateCompareOperatorWithDouble(tree, 'icmp ne', 'fcmp one', gctx, lctx);
     return block;
   }
   if (tree[0] === '<') {
-    const block = generateCompareOperator(tree, 'icmp slt', gctx, lctx);
+    //const block = generateCompareOperator(tree, 'icmp slt', gctx, lctx);
+    const block = generateCompareOperatorWithDouble(tree, 'icmp slt', 'fcmp olt', gctx, lctx);
     return block;
   }
   if (tree[0] === '<=') {
-    const block = generateCompareOperator(tree, 'icmp sle', gctx, lctx);
+    //const block = generateCompareOperator(tree, 'icmp sle', gctx, lctx);
+    const block = generateCompareOperatorWithDouble(tree, 'icmp sle', 'fcmp ole', gctx, lctx);
     return block;
   }
   if (tree[0] === '>') {
-    const block = generateCompareOperator(tree, 'icmp sgt', gctx, lctx);
+    //const block = generateCompareOperator(tree, 'icmp sgt', gctx, lctx);
+    const block = generateCompareOperatorWithDouble(tree, 'icmp sgt', 'fcmp ogt', gctx, lctx);
     return block;
   }
   if (tree[0] === '>=') {
-    const block = generateCompareOperator(tree, 'icmp sge', gctx, lctx);
+    //const block = generateCompareOperator(tree, 'icmp sge', gctx, lctx);
+    const block = generateCompareOperatorWithDouble(tree, 'icmp sge', 'fcmp oge', gctx, lctx);
     return block;
   }
 
@@ -743,8 +756,8 @@ function castToI1(lctx) {
   // --- support double ---
   if (currentType === 'double') {
     const currentName = currentTempName(lctx);
-    const castedName = nextTempName(lctx); //fcmp oeq float 4.0, 5.0
-    const castBlock = TAB() + castedName + ' = fcmp one double ' + currentName + ', 0.0 ;cast doublet to i1' + LF();
+    const castedName = nextTempName(lctx);
+    const castBlock = TAB() + castedName + ' = fcmp one double ' + currentName + ', 0.0 ;cast double to i1' + LF();
     setCurrentTempType(lctx, 'i32');
     return castBlock;
   }
@@ -754,6 +767,23 @@ function castToI1(lctx) {
   abort();
 }
 
+function castToDouble(lctx, currentName, currentType) {
+  if (currentType === 'double') {
+    return '';
+  }
+
+  if (currentType === 'i32') {
+    // sitofp i32 %a to double
+    const castedName = nextTempName(lctx);
+    const castBlock = TAB() + castedName + ' = sitofp i32 ' + currentName + ' to double ;cast i32 to double' + LF();
+    setCurrentTempType(lctx, 'double');
+    return castBlock;
+  }
+
+  println('-- ERROR: unknown type in castToDouble() ---');
+  println(currentType);
+  abort();
+}
 
 
 // --- binary operator ---
@@ -768,9 +798,55 @@ function generateBinaryOperator(tree, operator, gctx, lctx) {
   return (leftBlock + rightBlock + operatorBlock);
 }
 
+function generateBinaryOperatorWithDouble(tree, operator, doubleOperator, gctx, lctx) {
+  const leftBlock = generate(tree[1], gctx, lctx);
+  const leftTempName = currentTempName(lctx);
+  const leftType = currentTempType(lctx);
+
+  const rightBlock = generate(tree[2], gctx, lctx);
+  const rightTempName = currentTempName(lctx);
+  const rightType = currentTempType(lctx);
+
+  // --- double operation ---
+  if ( (leftType === 'double') || (rightType === 'double') ) {
+    let leftCastBlock = '';
+    let leftCastName = leftTempName;
+    let rightCastBlock = '';
+    let rightCastName = rightTempName;
+
+    // --- cast to dobule --
+    if (leftType !== 'double') {
+      leftCastBlock = castToDouble(lctx, leftTempName, leftType);
+      leftCastName = currentTempName(lctx);
+    }
+
+    if (rightType !== 'double') {
+      rightCastBlock = castToDouble(lctx, rightTempName, rightType);
+      rightCastName = currentTempName(lctx);
+    }
+
+    // -- double operation --
+    const tempName = nextTempName(lctx);
+    setCurrentTempType(lctx, 'double');
+    const operatorBlock = TAB() + tempName + ' = ' + doubleOperator + ' double ' + leftCastName + ', ' + rightCastName + LF();
+    return (leftBlock + rightBlock + leftCastBlock + rightCastBlock + operatorBlock);
+  }
+
+  // --- i32 operation ---
+  const tempName = nextTempName(lctx);
+  const operatorBlock = TAB() + tempName + ' = ' + operator + ' i32 ' + leftTempName + ', ' + rightTempName + LF();
+  return (leftBlock + rightBlock + operatorBlock);
+}
+
 // --- compare operator ---
 function generateCompareOperator(tree, operator, gctx, lctx) {
   const block = generateBinaryOperator(tree, operator, gctx, lctx);
+  setCurrentTempType(lctx, 'i1');
+  return block;
+}
+
+function generateCompareOperatorWithDouble(tree, operator, doubleOperator, gctx, lctx) {
+  const block = generateBinaryOperatorWithDouble(tree, operator, doubleOperator, gctx, lctx);
   setCurrentTempType(lctx, 'i1');
   return block;
 }
@@ -794,7 +870,8 @@ function generateBuiltin() {
   let block = LF();
   block = block + '; --- builtin functions ---' + LF();
   block = block + '@.sputn = private unnamed_addr constant [5 x i8] c"%d\\0D\\0A\\00", align 1' + LF();
-  block = block + '@.sputf = private unnamed_addr constant [8 x i8] c"%.12f\\0D\\0A\\00", align 1' + LF();
+  block = block + '@.sputf = private unnamed_addr constant [7 x i8] c"%.8f\\0D\\0A\\00", align 1' + LF();
+  //block = block + '@.sputf = private unnamed_addr constant [6 x i8] c"%lf\\0D\\0A\\00", align 1' + LF();
   block = block + 'declare i32 @printf(i8*, ...)' + LF();
   block = block + 'declare i32 @puts(i8*)' + LF();
   block = block + LF();
@@ -808,7 +885,9 @@ function generateBuiltin() {
   // --- putf(double) ---
   block = block + LF();
   block = block + 'define i32 @putf(double) {' + LF();
-  block = block + '  %r1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @.sputf, i32 0, i32 0), double %0)' + LF();
+  //block = block + '  %r1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @.sputf, i32 0, i32 0), double %0)' + LF();
+  block = block + '  %r1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.sputf, i32 0, i32 0), double %0)' + LF();
+  //block = block + '  %r1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.sputf, i32 0, i32 0), double %0)' + LF();
   //block = block + '  ret void' + LF();
   block = block + '  ret i32 0' + LF();
   block = block + '}' + LF();
