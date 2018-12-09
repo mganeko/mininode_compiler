@@ -7,7 +7,8 @@
 
 # ----- test target ----
 #compiler=mininode_compiler12.js
-compiler=mininode_compiler_13.js
+#compiler=mininode_compiler_13.js
+compiler=mininode_compiler_14.js
 
 
 # --- summary ---

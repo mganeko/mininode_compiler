@@ -63,7 +63,10 @@ Report() {
 
 #TestSingleWithPreprocess $compiler $interpreter consolelog.js none ignoreexit remove
 #TestSingleWithPreprocess $compiler $interpreter fizzbuzz_func_consolelog.js none ignoreexit remove
-TestSingleWithPreprocess $compiler $interpreter double.js builtin ignoreexit save
+TestSingleWithPreprocess $compiler $interpreter double.js builtin ignoreexit remove
+TestSingleWithPreprocess $compiler $interpreter double_operator.js builtin ignoreexit remove
+TestSingleWithPreprocess $compiler $interpreter double_compare.js builtin ignoreexit remove
+
 #--
 Report
 #exit $err_count

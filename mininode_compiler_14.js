@@ -25,9 +25,10 @@
 //    - 14: ret i32
 //    - 14: cast to i32
 //    - 14: cast to i1
-//    - cast to double
+//    - 14: cast to double
 //    - 14: literal
-//    - expression
+//    - 14: bin operator
+//    - 14: compare
 //    - variable
 //    - (args type)
 //    - (ret double)
