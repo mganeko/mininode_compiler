@@ -16,6 +16,7 @@ const callBuiltinByName = require('./module_builtin_14.js');
 const printWarn = require('./module_printwarn.js');
 //const isDouble = require('./module_isdouble.js');
 
+
 // --- for console.log ---
 //const consoleLog = console.log;
 //const consoleLog = require('./module_consolelog.js');
@@ -316,7 +317,8 @@ let genv = {
 
   // --- for double ---
   'isDouble' : ['builtin', 'isDouble'],
-  'putf' : ['builtin', 'println'],
+  //'putf' : ['builtin', 'println'],
+  'putf' : ['builtin', 'putf'],
 };
 let lenv = {};
 

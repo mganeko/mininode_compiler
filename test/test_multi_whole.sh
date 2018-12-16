@@ -63,9 +63,14 @@ Report() {
 
 #TestSingleWithPreprocess $compiler $interpreter consolelog.js none ignoreexit remove
 #TestSingleWithPreprocess $compiler $interpreter fizzbuzz_func_consolelog.js none ignoreexit remove
-TestSingleWithPreprocess $compiler $interpreter double.js builtin ignoreexit remove
-TestSingleWithPreprocess $compiler $interpreter double_operator.js builtin ignoreexit remove
-TestSingleWithPreprocess $compiler $interpreter double_compare.js builtin ignoreexit remove
+
+#TestSingleWithPreprocess $compiler $interpreter equal2.js builtin ignoreexit remove
+
+#TestSingleWithPreprocess $compiler $interpreter double.js builtin ignoreexit remove
+#TestSingleWithPreprocess $compiler $interpreter double_operator.js builtin ignoreexit remove
+#TestSingleWithPreprocess $compiler $interpreter double_compare.js builtin ignoreexit remove
+
+TestSingleWithPreprocess $compiler $interpreter double_var.js builtin ignoreexit remove
 
 #--
 Report
@@ -102,6 +107,9 @@ TestSingleWithPreprocess $compiler $interpreter fib_func.js builtin ignoreexit r
 TestSingleWithPreprocess $compiler $interpreter consolelog.js none ignoreexit remove
 TestSingleWithPreprocess $compiler $interpreter fizzbuzz_func_consolelog.js none ignoreexit remove
 
+TestSingleWithPreprocess $compiler $interpreter double.js builtin ignoreexit remove
+TestSingleWithPreprocess $compiler $interpreter double_operator.js builtin ignoreexit remove
+TestSingleWithPreprocess $compiler $interpreter double_compare.js builtin ignoreexit remove
 
 # --- report --
 Report

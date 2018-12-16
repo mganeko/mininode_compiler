@@ -24,6 +24,8 @@ const consoleLog = require('./module_consolelog.js');
 
 // --- for double ---
 const isDouble = require('./module_isdouble.js');
+const putf = require('./module_putf.js');
+
 
 // === exports ===
 module.exports = callBuiltinByName;
@@ -57,4 +59,5 @@ let builtins = {
 
   // --- for double ---
   'isDouble' : isDouble,
+  'putf' : putf,
 };

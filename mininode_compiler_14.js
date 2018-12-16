@@ -29,7 +29,7 @@
 //    - 14: literal
 //    - 14: bin operator
 //    - 14: compare
-//    - variable
+//    - 14: variable
 //    - (args type)
 //    - (ret double)
 // -------------------------
@@ -49,9 +49,6 @@ const isDouble = require('./module_isdouble.js');
 const writeFile = require('./module_writefile.js');
 
 // ======== for comiler =======
-//const LF = '\n';
-//const TAB = '  ';
-
 function LF() {
   return '\n';
 }
@@ -60,10 +57,17 @@ function TAB() {
   return '  ';
 }
 
-let l_ctx = {
-  '_tempIdx': 0, // temp index
-  '_tempType': 'i32', // current temp type
-};
+function initialLocalContext() {
+  const ctx = {
+    '_tempIdx': 0, // temp index
+    '_tempType': 'i32', // current temp type
+
+    // -- for double --
+    '_inferencedType': 'i32', // infereenced type for iniializing variable
+  };
+  return ctx;
+}
+let l_ctx = initialLocalContext(); // top level local context
 
 let g_ctx = {
   'strIdx' : 0, // string index
@@ -124,6 +128,9 @@ function addLocalVariable(lctx, name, type, addr) {
   // 'name' : [ 'local_var', 'i32', addr ]
   const v = ['local_var', type, addr];
   lctx[name] = v;
+
+  // -- for double --
+  lctx['_inferencedType'] = type;
 }
 
 function getLocalVariable(lctx, name) {
@@ -134,6 +141,55 @@ function getLocalVariable(lctx, name) {
 function getLocalVariableAddr(lctx, name) {
   const v = getLocalVariable(lctx, name)
   return v[2];
+}
+
+// -- for double --
+function getLocalVariableType(lctx, name) {
+  const v = getLocalVariable(lctx, name)
+  return v[1];
+}
+
+// -- for double --
+function setInferecedType(lctx, type) {
+  lctx['_inferencedType'] = type;
+}
+
+function getInferecedType(lctx) {
+  return lctx['_inferencedType'];
+}
+
+function updateInferecedType(lctx, type) {
+  const currentType = lctx['_inferencedType'];
+  const updatedType = upperType(currentType, type);
+
+  lctx['_inferencedType'] = updatedType;
+}
+
+function upperType(type1, type2) {
+  if ( (type1 === 'double') || (type2 === 'double') ) {
+    return 'double';
+  } 
+
+  if ( (type1 === 'i32') || (type2 === 'i32') ) {
+    return 'i32';
+  }
+
+  if ( (type1 === 'i8') || (type2 === 'i8') ) {
+    return 'i8';
+  }
+
+  if ( (type1 === 'i1') || (type2 === 'i1') ) {
+    return 'i1';
+  }
+
+  return 'void';
+}
+
+function setLocalVariable(lctx, name, type) {
+  // 'name' : [ 'local_var', 'i32', addr ]
+
+  const v = getLocalVariable(lctx, name)
+  v[1] = type;
 }
 
 //ex) funcList['add'] = ['user_defined', '@add', 'i32', 2, '.....']
@@ -248,80 +304,16 @@ function generate(tree, gctx, lctx) {
   // --- local variable --
   // 'var_name' : [ 'local_var', 'i32', addrVarName ],
   if (tree[0] === 'var_decl') {
-    // -- check NOT exist --
-    const name = tree[1];
-    if (name in lctx) {
-      println('---ERROR: varbable ALREADY exist (compiler) --');
-      abort();
-    }
-
-    let block = '';
-    // -- alloc on stack --
-    const addrVar = nextTempName(lctx);
-    block = block + TAB() + addrVar + ' = alloca i32, align 4' + ' ;alloc localVariable:' + name + LF();
-    //lctx[name] = ['local_var', 'i32', addrVar];
-    addLocalVariable(lctx, name, 'i32', addrVar);
-
-    // --- assign initial value --
-    const init = generate(tree[2], gctx, lctx);
-    if (init !== '') {
-      block = block + init;
-
-      // -- cast i1 to i32, if needed --
-      const castBlock = castToI32(lctx);
-      block = block + castBlock;
-
-      const initValue = currentTempName(lctx);
-      block = block + TAB() + 'store i32 ' + initValue + ', i32* ' + addrVar + ', align 4' + ' ;store init localVariable:' + name + LF();
-    }
-
+    const block = declareVariable(tree, gctx, lctx);
     return block;
   }
   if (tree[0] === 'var_assign') {
-    // -- check EXIST --
-    const name = tree[1];
-    if (name in lctx) {
-      let block = '';
-      //const localVar = lctx[name];
-      //const addrVar = localVar[2];
-      const addrVar = getLocalVariableAddr(lctx, name);
-      const valBlock =  generate(tree[2], gctx, lctx);
-      if (valBlock === '') {
-        println('---ERROR: var assign value NOT exist --');
-        abort();
-      }
-      block = block + valBlock + LF();
-
-      // -- cast i1 to i32, if needed --
-      const castBlock = castToI32(lctx);
-      block = block + castBlock;
-
-      const lastValue = currentTempName(lctx);
-      block = block + TAB() + 'store i32 ' + lastValue + ', i32* ' + addrVar + ', align 4' + ' ;store localVariable:' + name + LF();
-      
-      return block;
-    }
-
-    println('---ERROR: varibable NOT declarated (assign)--:' + name);
-    abort();
+    const block = variableAssign(tree, gctx, lctx);
+    return block;
   }
   if (tree[0] === 'var_ref') {
-    // -- check EXIST --
-    const name = tree[1];
-    if (name in lctx) {
-      let block = '';
-      //const localVar = lctx[name];
-      //const addrVar = localVar[2];
-      const addrVar = getLocalVariableAddr(lctx, name);
-      const val = nextTempName(lctx);
-
-      // %t1 = load i32, i32* %v1, align 4
-      block = TAB() + val + ' = load i32, i32* ' + addrVar + ', align 4' + ' ;load localVariable:' + name + LF();
-      return block;
-    }
-
-    println('---ERROR: varibable NOT declarated (ref)--:' + name);
-    abort();
+    const block = variableRefer(tree, gctx, lctx);
+    return block;
   }
 
   if (tree[0] === 'lit') {
@@ -332,6 +324,7 @@ function generate(tree, gctx, lctx) {
         // ---- double literal ---
         const tempName = nextTempName(lctx);
         setCurrentTempType(lctx, 'double');
+        updateInferecedType(lctx, 'double');
         return TAB() + tempName + ' = fadd double ' + tree[1] + ', 0.0' + LF();
       }
 
@@ -414,6 +407,150 @@ function generate(tree, gctx, lctx) {
   abort();
 }
 
+// --- declare variable ---
+function declareVariable(tree, gctx, lctx) {
+  // 'var_name' : [ 'local_var', 'i32', addrVarName ],
+
+  // -- check NOT exist --
+  const name = tree[1];
+  if (name in lctx) {
+    println('---ERROR: varbable ALREADY exist (compiler) --');
+    abort();
+  }
+
+  let block = '';
+  // -- alloc on stack --
+  const addrVar = nextTempName(lctx);
+  let declareBlock = TAB() + addrVar + ' = alloca i32, align 4' + ' ;alloc localVariable:' + name + LF();
+  //block = block + TAB() + addrVar + ' = alloca i32, align 4' + ' ;alloc localVariable:' + name + LF();
+  addLocalVariable(lctx, name, 'i32', addrVar);
+
+  // --- assign initial value --
+  const init = generate(tree[2], gctx, lctx);
+  if (init !== '') {
+    const inferencedType = getInferecedType(lctx);
+
+    if (inferencedType === 'i32') {
+      block = block + declareBlock;
+      block = block + init;
+
+      // -- cast i1 to i32, if needed --
+      const castBlock = castToI32(lctx);
+      block = block + castBlock;
+
+      const initValue = currentTempName(lctx);
+      block = block + TAB() + 'store i32 ' + initValue + ', i32* ' + addrVar + ', align 4' + ' ;store init localVariable:' + name + LF();
+    }
+    else if (inferencedType === 'double') {
+      setLocalVariable(lctx, name, inferencedType);
+      declareBlock = TAB() + addrVar + ' = alloca double, align 8' + ' ;alloc localVariable(as double):' + name + LF();
+      block = block + declareBlock;
+      block = block + init;
+
+      //// -- cast i1 to i32, if needed --
+      //const castBlock = castToI32(lctx);
+      //block = block + castBlock;
+
+      const initValue = currentTempName(lctx);
+      block = block + TAB() + 'store double ' + initValue + ', double* ' + addrVar + ', align 8' + ' ;store init localVariable(as double):' + name + LF();
+
+      //println('-- WADN: double inferencedType in declareVariable() NOT YET ---');
+      //abort();
+    }
+    else {
+      println('-- ERROR: unknown inferencedType in declareVariable() ---');
+      println(inferencedType);
+      abort();
+    }
+  }
+  else {
+    // --- no initial value --> assume i32
+    block = block + declareBlock;
+  }
+
+  return block;
+}
+
+// --- assign variable --
+function variableAssign(tree, gctx, lctx) {
+  // -- check EXIST --
+  const name = tree[1];
+  if (name in lctx) {
+    let block = '';
+    //const localVar = lctx[name];
+    //const addrVar = localVar[2];
+    const addrVar = getLocalVariableAddr(lctx, name);
+    const type = getLocalVariableType(lctx, name);
+    const valBlock =  generate(tree[2], gctx, lctx);
+    if (valBlock === '') {
+      println('---ERROR: var assign value NOT exist --');
+      abort();
+    }
+    block = block + valBlock + LF();
+
+    if (type === 'i32') {
+      // -- cast i1 to i32, if needed --
+      const castBlock = castToI32(lctx);
+      block = block + castBlock;
+
+      const lastValue = currentTempName(lctx);
+      block = block + TAB() + 'store i32 ' + lastValue + ', i32* ' + addrVar + ', align 4' + ' ;store localVariable:' + name + LF();
+      return block;
+    }
+
+    if (type === 'double') {
+      // -- cast to double, if needed --
+      const tempName = currentTempName(lctx);
+      const tempType = currentTempType(lctx);
+
+      const castBlock = castToDouble(lctx, tempName, tempType);
+      block = block + castBlock;
+
+      const lastValue = currentTempName(lctx);
+      block = block + TAB() + 'store double ' + lastValue + ', double* ' + addrVar + ', align 8' + ' ;store localVariable(as double):' + name + LF();
+      return block;
+    }
+
+    println('-- ERROR: unknown type in variableAssign() ---');
+    println(type);
+    abort();
+  }
+
+  println('---ERROR: varibable NOT declarated (assign)--:' + name);
+  abort();
+}
+
+// --- variable refer ---
+function variableRefer(tree, gctx, lctx) {
+  // -- check EXIST --
+  const name = tree[1];
+  if (name in lctx) {
+    let block = '';
+    const addrVar = getLocalVariableAddr(lctx, name);
+    const type = getLocalVariableType(lctx, name);
+    const val = nextTempName(lctx);
+
+    if (type === 'i32') {
+      block = TAB() + val + ' = load i32, i32* ' + addrVar + ', align 4' + ' ;load localVariable:' + name + LF();
+    }
+    else if (type === 'double') {
+      block = TAB() + val + ' = load double, double* ' + addrVar + ', align 8' + ' ;load localVariable(as double):' + name + LF();
+      setCurrentTempType(lctx, 'double');
+    }
+    else {
+      println('-- ERROR: unknown type in variableRefer() ---');
+      println(type);
+      abort();
+    }
+
+    return block;
+  }
+
+  println('---ERROR: varibable NOT declarated (ref)--:' + name);
+  abort();
+}
+
+
 // --- define function --- 
 function generateFuncDef(tree, gctx) {
   // -- append to global context --
@@ -427,10 +564,12 @@ function generateFuncDef(tree, gctx) {
   const argListBlock = generateArgListBlock(argCount);
 
   // --- prepare new local context for inside of function --
-  let newLctx = {
-    '_tempIdx': 0, // temp index
-    '_tempType': 'i32', // current temp type
-  };
+  let newLctx = initialLocalContext();
+  // let newLctx = {
+  //   '_tempIdx': 0, // temp index
+  //   '_tempType': 'i32', // current temp type
+  // };
+  
   // -- load args to local variable --
   const loadArgBlock = generateLoadArgBlock(tree, argCount, newLctx);
 
@@ -750,7 +889,10 @@ function castToI1(lctx) {
     const currentName = currentTempName(lctx);
     const castedName = nextTempName(lctx);
     const castBlock = TAB() + castedName + ' = icmp ne i32 ' + currentName + ', 0' + LF();
-    setCurrentTempType(lctx, 'i32');
+    //setCurrentTempType(lctx, 'i32');
+
+    setCurrentTempType(lctx, 'i1');
+    setInferecedType(lctx, 'i1');
     return castBlock;
   }
 
@@ -759,7 +901,10 @@ function castToI1(lctx) {
     const currentName = currentTempName(lctx);
     const castedName = nextTempName(lctx);
     const castBlock = TAB() + castedName + ' = fcmp one double ' + currentName + ', 0.0 ;cast double to i1' + LF();
-    setCurrentTempType(lctx, 'i32');
+    //setCurrentTempType(lctx, 'i32');
+  
+    setCurrentTempType(lctx, 'i1');
+    setInferecedType(lctx, 'i1');
     return castBlock;
   }
 
@@ -778,6 +923,7 @@ function castToDouble(lctx, currentName, currentType) {
     const castedName = nextTempName(lctx);
     const castBlock = TAB() + castedName + ' = sitofp i32 ' + currentName + ' to double ;cast i32 to double' + LF();
     setCurrentTempType(lctx, 'double');
+    setInferecedType(lctx, 'double');
     return castBlock;
   }
 
@@ -788,6 +934,7 @@ function castToDouble(lctx, currentName, currentType) {
 
 
 // --- binary operator ---
+/*
 function generateBinaryOperator(tree, operator, gctx, lctx) {
   const leftBlock = generate(tree[1], gctx, lctx);
   const leftTempName = currentTempName(lctx);
@@ -798,6 +945,7 @@ function generateBinaryOperator(tree, operator, gctx, lctx) {
   const operatorBlock = TAB() + tempName + ' = ' + operator + ' i32 ' + leftTempName + ', ' + rightTempName + LF();
   return (leftBlock + rightBlock + operatorBlock);
 }
+*/
 
 function generateBinaryOperatorWithDouble(tree, operator, doubleOperator, gctx, lctx) {
   const leftBlock = generate(tree[1], gctx, lctx);
@@ -829,6 +977,8 @@ function generateBinaryOperatorWithDouble(tree, operator, doubleOperator, gctx, 
     // -- double operation --
     const tempName = nextTempName(lctx);
     setCurrentTempType(lctx, 'double');
+    updateInferecedType(lctx, 'double');
+
     const operatorBlock = TAB() + tempName + ' = ' + doubleOperator + ' double ' + leftCastName + ', ' + rightCastName + LF();
     return (leftBlock + rightBlock + leftCastBlock + rightCastBlock + operatorBlock);
   }
@@ -840,15 +990,17 @@ function generateBinaryOperatorWithDouble(tree, operator, doubleOperator, gctx, 
 }
 
 // --- compare operator ---
-function generateCompareOperator(tree, operator, gctx, lctx) {
-  const block = generateBinaryOperator(tree, operator, gctx, lctx);
-  setCurrentTempType(lctx, 'i1');
-  return block;
-}
+// function generateCompareOperator(tree, operator, gctx, lctx) {
+//   const block = generateBinaryOperator(tree, operator, gctx, lctx);
+//   setCurrentTempType(lctx, 'i1');
+//   return block;
+// }
 
 function generateCompareOperatorWithDouble(tree, operator, doubleOperator, gctx, lctx) {
   const block = generateBinaryOperatorWithDouble(tree, operator, doubleOperator, gctx, lctx);
   setCurrentTempType(lctx, 'i1');
+  //setInferecedType(lctx, 'i1');
+
   return block;
 }
 

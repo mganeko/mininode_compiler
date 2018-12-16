@@ -18,7 +18,7 @@ function puts(s) {
 
 // --- for double --
 function putf(d) {
-  console.log(d);
+  console.log(d.toFixed(8));
   return 0;
 }
 // --------------
